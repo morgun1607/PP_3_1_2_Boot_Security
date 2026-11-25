@@ -70,7 +70,7 @@ class SecurityIntegrationTest {
         mvc.perform(post("/logout").with(csrf()).session(session))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?logout"));
-        mvc.perform(get("/admin").session(session)).andExpect(status().is3xxRedirection());
+        mvc.perform(get("/admin")).andExpect(status().is3xxRedirection());
     }
 
     @Test void adminCanCreateAndUpdateUsers() throws Exception {
