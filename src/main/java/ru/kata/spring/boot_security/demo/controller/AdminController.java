@@ -2,7 +2,12 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -11,16 +16,21 @@ import java.util.Set;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
     private final UserService users;
     private final RoleRepository roles;
+
     public AdminController(UserService users, RoleRepository roles) {
-        this.users = users; this.roles = roles;
+        this.users = users;
+        this.roles = roles;
     }
+
     @GetMapping
     public String list(Model model) {
         model.addAttribute("users", users.findAll());
         return "admin";
     }
+
     @GetMapping("/new")
     public String add(Model model) {
         model.addAttribute("user", new User());
@@ -28,25 +38,31 @@ public class AdminController {
         model.addAttribute("action", "/admin/create");
         return "user-form";
     }
+
     @PostMapping("/create")
     public String create(@ModelAttribute User user, @RequestParam Set<Long> roleIds) {
         users.create(user, roleIds);
         return "redirect:/admin";
     }
+
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
         User user = users.findById(id);
-        if (user == null) return "redirect:/admin";
+        if (user == null) {
+            return "redirect:/admin";
+        }
         model.addAttribute("user", user);
         model.addAttribute("roles", roles.findAll());
         model.addAttribute("action", "/admin/" + id + "/update");
         return "user-form";
     }
+
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, @ModelAttribute User user, @RequestParam Set<Long> roleIds) {
         users.update(id, user, roleIds);
         return "redirect:/admin";
     }
+
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {
         users.delete(id);

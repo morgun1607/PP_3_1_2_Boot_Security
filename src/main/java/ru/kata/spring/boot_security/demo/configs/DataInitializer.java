@@ -5,31 +5,34 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.kata.spring.boot_security.demo.dao.UserDao;
+import ru.kata.spring.boot_security.demo.repository.UserRepository;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import org.springframework.transaction.support.TransactionTemplate;
-import java.util.Collections;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Configuration
 public class DataInitializer {
+
     @Bean
-    CommandLineRunner initializeUsers(RoleRepository roles, UserDao users, PasswordEncoder encoder,
+    CommandLineRunner initializeUsers(RoleRepository roles, UserRepository users, PasswordEncoder encoder,
             TransactionTemplate tx,
             @Value("${app.admin.password:}") String adminPassword,
             @Value("${app.user.password:}") String userPassword) {
         return args -> tx.executeWithoutResult(status -> {
             Role adminRole = roles.findByName("ROLE_ADMIN").orElseGet(() -> roles.save(new Role("ROLE_ADMIN")));
             Role userRole = roles.findByName("ROLE_USER").orElseGet(() -> roles.save(new Role("ROLE_USER")));
-            if (!adminPassword.isBlank() && users.findByEmail("admin@example.com") == null) {
+            if (!adminPassword.isBlank() && !users.existsByEmail("admin@example.com")) {
                 User admin = new User("Admin", "Account", "admin@example.com", encoder.encode(adminPassword));
-                admin.setRoles(new java.util.HashSet<>(java.util.Arrays.asList(adminRole, userRole)));
+                admin.setRoles(new HashSet<>(Set.of(adminRole, userRole)));
                 users.save(admin);
             }
-            if (!userPassword.isBlank() && users.findByEmail("user@example.com") == null) {
+            if (!userPassword.isBlank() && !users.existsByEmail("user@example.com")) {
                 User user = new User("User", "Account", "user@example.com", encoder.encode(userPassword));
-                user.setRoles(Collections.singleton(userRole));
+                user.setRoles(new HashSet<>(Set.of(userRole)));
                 users.save(user);
             }
         });
